@@ -4,21 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#05070D">
-<meta name="description" content="잠들기 전 5분, 귀여운 캐릭터 셋이 오늘의 주요 뉴스를 만화처럼 들려주는 웹앱">
+<meta name="description" content="잠들기 전 5분, 귀여운 캐릭터 둘이 오늘의 주요 뉴스를 만화처럼 들려주는 웹앱">
 <title>잠들기 전 5분 뉴스</title>
 <style>
 :root{
   --fs:1;
   --bg:#FBF6EC; --card:#FFFFFF; --ink:#101828; --ink2:#2B3550; --line:#D9CCB3; --frame:#1F2D52;
   --navy:#24345C; --on-navy:#FFF8EA; --accent:#24345C; --chip:#F1E8D6;
-  --t-host:#FDECE4; --t-analyst:#E7EDFA; --t-realist:#E4F2E8;
+  --t-host:#FDECE4; --t-analyst:#E7EDFA;
   --fact:#14512F; --interp:#2C3C8C; --react:#7A3F0C; --warn:#8A2222;
   --ok-bg:#E4F2E8; --demo-bg:#FCEFD9; --load-bg:#E7EDFA;
 }
 :root[data-theme="night"]{
   --bg:#05070D; --card:#0C1120; --ink:#FFFFFF; --ink2:#E6E9F2; --line:#3A4670; --frame:#C9D3F0;
   --navy:#FFE2A8; --on-navy:#05070D; --accent:#FFE2A8; --chip:#232E52;
-  --t-host:#1E1218; --t-analyst:#0F1630; --t-realist:#0D1C16;
+  --t-host:#1E1218; --t-analyst:#0F1630;
   --fact:#A8F0C2; --interp:#C9D3FF; --react:#FFD3A1; --warn:#FFC2C2;
   --ok-bg:#0F2419; --demo-bg:#2A1F0C; --load-bg:#141C38;
 }
@@ -41,7 +41,8 @@ a{color:inherit}
 #home{min-height:100vh;min-height:100dvh;gap:22px}
 .date{font-size:1.25rem;font-weight:700;color:var(--ink2);margin-top:6px}
 .hello{font-size:2rem;line-height:1.35;font-weight:800;letter-spacing:-0.02em}
-.cast-home{display:flex;justify-content:space-between;gap:8px}
+.cast-home{display:flex;justify-content:center;gap:32px}
+.cast-home figure{max-width:130px}
 .cast-home figure{flex:1;text-align:center}
 .cast-home svg{width:100%;max-width:110px;height:auto;display:block;margin:0 auto}
 .cast-home figcaption{font-size:1.125rem;font-weight:800;margin-top:4px}
@@ -98,26 +99,25 @@ details[open] summary::after{content:"－"}
   box-shadow:5px 5px 0 var(--line);padding:16px 14px 10px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;position:relative}
 .bwrap{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;padding-bottom:4px;-webkit-overflow-scrolling:touch}
 .bwrap .bubble{margin-top:auto;flex-shrink:0}
-.bubble{--tail:17%;position:relative;background:var(--tint,var(--t-host));border:2.5px solid var(--frame);border-radius:20px;padding:14px 16px 16px;margin-bottom:16px}
+.bubble{--tail:25%;position:relative;background:var(--tint,var(--t-host));border:2.5px solid var(--frame);border-radius:20px;padding:14px 16px 16px;margin-bottom:16px}
 .bubble::before,.bubble::after{content:"";position:absolute;left:calc(var(--tail) - 12px);width:22px;height:22px;transform:rotate(45deg)}
 .bubble::before{bottom:-13px;background:var(--frame)}
 .bubble::after{bottom:-9.5px;background:var(--tint,var(--t-host))}
 .bubble.pop{animation:pop .28s ease-out}
-@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0}to{opacity:1}}
 .who{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .who .nm{font-size:1.0625rem;font-weight:800}
 .badge{font-size:.9375rem;font-weight:800;padding:2px 10px;border-radius:999px;border:2px solid currentColor;line-height:1.5}
 .badge.fact{color:var(--fact)} .badge.interp{color:var(--interp)} .badge.react{color:var(--react)} .badge.none{color:var(--warn)} .badge.key{color:var(--ink)}
 .say{font-size:1.4375rem;line-height:1.6;font-weight:600;white-space:pre-line;position:relative;z-index:1}
 .say q{quotes:"“" "”";font-weight:800}
-.cast{display:flex;justify-content:space-around;align-items:flex-end;flex-shrink:0}
-.actor{width:31%;max-width:118px;text-align:center;opacity:.5;transform:scale(.8) translateY(6px);transform-origin:bottom center;transition:transform .3s ease, opacity .3s ease}
+.cast{display:flex;justify-content:space-around;gap:12px;align-items:flex-end;flex-shrink:0}
+.actor{width:40%;max-width:124px;text-align:center;opacity:.5;transform:scale(.8) translateY(6px);transform-origin:bottom center;transition:transform .3s ease, opacity .3s ease}
 .actor svg{width:100%;height:auto;display:block}
 .actor .n{font-size:1rem;font-weight:800;margin-top:2px}
 .actor.on{opacity:1;transform:none}
 .actor.on svg{animation:bob 1.8s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-.hint{position:absolute;right:14px;top:10px;font-size:1rem;color:var(--ink2);font-weight:700}
 .timebar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;flex-shrink:0}
 .timebar i{display:block;height:100%;width:0;background:var(--accent)}
 .src{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;flex-shrink:0}
@@ -142,7 +142,7 @@ details[open] summary::after{content:"－"}
 .night{font-size:1.375rem;font-weight:700;text-align:center;line-height:1.6}
 .endbtns{display:flex;flex-direction:column;gap:12px}
 
-.panel.tight .actor{max-width:58px}
+.panel.tight .actor{max-width:84px}
 .panel.tight .actor .n{display:none}
 .panel.tight .bubble{margin-bottom:12px}
 .more{display:none;text-align:right;white-space:nowrap;font-size:.9375rem;font-weight:800;color:var(--ink2);padding:2px 6px 0;flex-shrink:0}
@@ -151,8 +151,8 @@ details[open] summary::after{content:"－"}
   #player{gap:8px}
   .panel{padding:12px 12px 8px}
   .actor{max-width:80px}
+  .panel.tight .actor{max-width:60px}
   .actor .n{font-size:.9375rem}
-  .hint{display:none}
   .bubble{margin-bottom:14px}
   .src a{padding:0 12px}
   .btn{min-height:52px}
@@ -235,7 +235,6 @@ details[open] summary::after{content:"－"}
   <div class="dots" id="dots" aria-hidden="true"></div>
 
   <div class="panel" id="panel" aria-label="화면을 누르면 다음 장면">
-    <span class="hint" id="hint">톡 누르면 다음 장면</span>
     <div class="bwrap">
       <div class="bubble" id="bubble" aria-live="polite">
         <div class="who"><span class="nm" id="whoNm"></span><span class="badge" id="badge"></span></div>
@@ -268,7 +267,8 @@ details[open] summary::after{content:"－"}
   <div class="status" id="endStatus"></div>
   <p class="night">오늘도 수고 많았어요.<br>이제 화면을 끄고 푹 쉬어요. 🌙</p>
   <div class="endbtns">
-    <button class="start" id="againBtn" type="button">처음부터 다시 보기</button>
+    <button class="start" id="moreBtn" type="button">🔄 다른 뉴스 5개 더 보기</button>
+    <button class="btn" id="againBtn" type="button">처음부터 다시 보기</button>
     <button class="btn" id="homeBtn" type="button">처음 화면으로</button>
   </div>
 </section>
@@ -286,6 +286,7 @@ function store(key, val){
   try{
     if(val === undefined){ var v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }
     localStorage.setItem(key, JSON.stringify(val));
+    return true;
   }catch(e){ return null; }
 }
 var saved = store('bn5.settings');
@@ -313,11 +314,10 @@ function $(id){ return document.getElementById(id); }
    2. 캐릭터 (SVG로 직접 그림, 이미지 파일 없음)
    ========================================================= */
 var CAST = {
-  host:    {name:'달토', role:'진행', animal:'rabbit', color:'#F4C2AE', tint:'var(--t-host)',    tail:'17%'},
-  analyst: {name:'부엉', role:'분석', animal:'owl',    color:'#B4C4EC', tint:'var(--t-analyst)', tail:'50%'},
-  realist: {name:'곰곰', role:'현실', animal:'bear',   color:'#B3D9BF', tint:'var(--t-realist)', tail:'83%'}
+  host:    {name:'달토', role:'진행', animal:'rabbit', color:'#F4C2AE', tint:'var(--t-host)',    tail:'25%'},
+  analyst: {name:'부엉', role:'분석', animal:'owl',    color:'#B4C4EC', tint:'var(--t-analyst)', tail:'75%'}
 };
-var ORDER = ['host','analyst','realist'];
+var ORDER = ['host','analyst'];
 var INK = '#24345C';
 
 function eyes(type){
@@ -361,13 +361,6 @@ function charSVG(who, mood){
     mo = (md.m === 'open' || md.m === 'o')
       ? '<path d="M54.5 76h11L60 81z" fill="#F2C46A"'+st+'/><path d="M56 84h8L60 88z" fill="#F2C46A"'+st+'/>'
       : '<path d="M54.5 77h11L60 85z" fill="#F2C46A"'+st+'/>';
-  }else{
-    body = '<circle cx="31" cy="42" r="13" fill="'+c.color+'"'+st+'/><circle cx="89" cy="42" r="13" fill="'+c.color+'"'+st+'/>'+
-           '<circle cx="31" cy="42" r="6" fill="#E8F4EB"/><circle cx="89" cy="42" r="6" fill="#E8F4EB"/>'+
-           '<circle cx="60" cy="72" r="38" fill="'+c.color+'"'+st+'/>'+
-           '<ellipse cx="60" cy="86" rx="16" ry="12" fill="#ECF6EE" stroke="'+INK+'" stroke-width="2"/>'+
-           '<ellipse cx="60" cy="80" rx="4.5" ry="3.3" fill="'+INK+'"/>';
-    mo = '<g transform="translate(0 5)">'+mo+'</g>';
   }
   var cheeks = '<circle cx="35.5" cy="80" r="5.5" fill="#F28F8F" opacity=".35"/><circle cx="84.5" cy="80" r="5.5" fill="#F28F8F" opacity=".35"/>';
   var extra = md.x ? '<text x="103" y="32" font-size="'+(md.x==='z'?20:24)+'" font-weight="800" fill="'+INK+'" text-anchor="middle" font-family="sans-serif">'+(md.x==='z'?'z':md.x)+'</text>' : '';
@@ -376,7 +369,7 @@ function charSVG(who, mood){
 function castFigures(mood){
   var out = '';
   ORDER.forEach(function(k){
-    var c = CAST[k], role = {host:'진행자', analyst:'분석가', realist:'현실주의자'}[k];
+    var c = CAST[k], role = {host:'진행자', analyst:'분석가'}[k];
     out += '<figure>'+charSVG(k, typeof mood === 'function' ? mood(k) : mood)+'<figcaption>'+c.name+'<span>'+role+'</span></figcaption></figure>';
   });
   return out;
@@ -389,32 +382,32 @@ var DEMO = [
   {cat:'생활', title:'늦은 밤 버스 노선을 늘린 어느 도시', key:'밤길 이동의 편리함과 운영 비용, 두 가지를 함께 봐야 해요.', query:'심야버스 노선 확대', cuts:[
     ['host','talk','dfact','첫 번째 이야기예요.\n어느 도시가 늦은 밤 다니는 버스 노선을 늘리기로 했대요.'],
     ['analyst','think','interp','밤늦게 일을 마치는 사람이 많아요.\n택시 잡기 어려운 시간에 버스가 대안이 될 수 있죠.'],
-    ['realist','calm','interp','다만 승객이 적은 시간이라 운영비가 부담이에요.\n편리함과 예산 사이의 저울질이 필요해요.'],
-    ['realist','talk','dreact','이런 소식엔 보통 “퇴근길이 편해진다”는 말과\n“세금이 아깝다”는 말이 함께 나와요.'],
+    ['analyst','calm','interp','다만 승객이 적은 시간이라 운영비가 부담이에요.\n편리함과 예산 사이의 저울질이 필요해요.'],
+    ['host','talk','dreact','이런 소식엔 보통 “퇴근길이 편해진다”는 말과\n“세금이 아깝다”는 말이 함께 나와요.'],
     ['host','happy','key','정리하면, 밤의 이동권과 비용을\n같이 따져 보는 게 핵심이에요.']]},
   {cat:'경제', title:'예금 이자를 조금 낮춘 은행들', key:'금리는 저축하는 사람과 빌리는 사람에게 반대로 작용해요.', query:'예금 금리 인하', cuts:[
     ['host','talk','dfact','두 번째는 돈 이야기예요.\n몇몇 은행이 예금 이자를 조금 낮춘 상황이에요.'],
     ['analyst','think','interp','은행은 앞으로 금리가 내려갈 거라 볼 때\n이자를 먼저 손보곤 해요. 시장 분위기를 보여 주는 신호죠.'],
-    ['realist','calm','interp','저축하는 사람에겐 아쉬운 소식이에요.\n대출이 있는 사람은 부담이 줄길 기대하기도 해요.'],
-    ['realist','talk','dreact','“이자 받는 재미가 줄었다”는 사람도,\n“대출 이자도 내려가면 좋겠다”는 사람도 있어요.'],
+    ['analyst','calm','interp','저축하는 사람에겐 아쉬운 소식이에요.\n대출이 있는 사람은 부담이 줄길 기대하기도 해요.'],
+    ['host','talk','dreact','“이자 받는 재미가 줄었다”는 사람도,\n“대출 이자도 내려가면 좋겠다”는 사람도 있어요.'],
     ['host','happy','key','핵심은 하나예요.\n금리는 저축하는 쪽과 빌리는 쪽에 반대로 작용해요.']]},
   {cat:'과학·기술', title:'AI가 만든 사진에 표시를 붙이자는 논의', key:'규칙도 중요하지만, 출처를 한 번 더 확인하는 습관이 가장 든든해요.', query:'AI 생성 이미지 표시', cuts:[
     ['host','surprised','dfact','세 번째는 기술 이야기예요.\nAI가 만든 사진에 “AI 제작” 표시를 붙이자는 논의예요.'],
     ['analyst','think','interp','요즘 AI 사진은 진짜와 구분하기 어려워요.\n가짜 뉴스나 사기에 쓰일까 걱정하는 목소리가 커졌죠.'],
-    ['realist','calm','interp','한편으론 표시를 쉽게 지울 수 있다는 지적도 있어요.\n규칙만큼 확인 기술도 중요하다는 거죠.'],
-    ['realist','talk','dreact','“꼭 필요하다”는 쪽과\n“창작자에게 번거롭다”는 쪽으로 의견이 갈릴 만해요.'],
+    ['analyst','calm','interp','한편으론 표시를 쉽게 지울 수 있다는 지적도 있어요.\n규칙만큼 확인 기술도 중요하다는 거죠.'],
+    ['host','talk','dreact','“꼭 필요하다”는 쪽과\n“창작자에게 번거롭다”는 쪽으로 의견이 갈릴 만해요.'],
     ['host','happy','key','결론은요, 보는 사람이 출처를\n한 번 더 확인하는 습관이 제일 든든해요.']]},
   {cat:'국제', title:'이웃 나라들이 폭염에 함께 대비하기로', key:'국제 약속은 발표보다 실제로 지켜지는지가 더 중요해요.', query:'폭염 국제 협력', cuts:[
     ['host','talk','dfact','네 번째는 세계 소식이에요.\n이웃한 나라들이 폭염에 함께 대비하기로 한 상황이에요.'],
     ['analyst','think','interp','더위는 국경을 가리지 않아요.\n날씨 정보를 나누면 경보를 더 빨리 낼 수 있죠.'],
-    ['realist','calm','interp','그런데 나라마다 돈과 기술 사정이 달라요.\n누가 얼마나 부담할지가 늘 어려운 숙제예요.'],
-    ['realist','talk','dreact','“협력은 당연하다”는 반응과\n“약속만 하고 끝날까 걱정”이라는 반응이 같이 나와요.'],
+    ['analyst','calm','interp','그런데 나라마다 돈과 기술 사정이 달라요.\n누가 얼마나 부담할지가 늘 어려운 숙제예요.'],
+    ['host','talk','dreact','“협력은 당연하다”는 반응과\n“약속만 하고 끝날까 걱정”이라는 반응이 같이 나와요.'],
     ['host','happy','key','핵심은 발표보다 실천이에요.\n약속이 지켜지는지 꾸준히 지켜봐야 해요.']]},
   {cat:'생활', title:'잠들기 전 화면을 덜 보자는 캠페인', key:'무조건 끊기보다 “여기까지” 시간을 정하는 게 현실적이에요.', query:'수면 스마트폰 사용', cuts:[
     ['host','talk','dfact','마지막은 우리 이야기예요.\n자기 전 화면을 덜 보자는 캠페인이 열린 상황이에요.'],
     ['analyst','think','interp','밤에 밝은 화면을 오래 보면\n잠들기 어려울 수 있다고 알려져 있어요.'],
-    ['realist','calm','interp','그래도 폰으로 하루를 정리하는 사람도 많아요.\n무조건 끊기보다 시간을 정하는 게 현실적이에요.'],
-    ['realist','talk','dreact','“알람만 맞추고 내려놓는다”는 사람도,\n“잔잔한 걸 보면 잠이 온다”는 사람도 있어요.'],
+    ['analyst','calm','interp','그래도 폰으로 하루를 정리하는 사람도 많아요.\n무조건 끊기보다 시간을 정하는 게 현실적이에요.'],
+    ['host','talk','dreact','“알람만 맞추고 내려놓는다”는 사람도,\n“잔잔한 걸 보면 잠이 온다”는 사람도 있어요.'],
     ['host','sleepy','key','그러니 오늘은 여기까지!\n이 화면을 끄면 바로 쉬는 시간이에요.']]}
 ];
 
@@ -581,7 +574,8 @@ function similar(a, b){
   var uni = a.size + b.size - inter;
   return uni ? inter / uni : 0;
 }
-function selectStories(raw){
+function selectStories(raw, shown){
+  shown = shown || [];
   var items = raw.map(cleanItem).filter(Boolean), clusters = [];
   items.forEach(function(it){
     var tk = new Set(tokens(it.title)), hit = null;
@@ -603,6 +597,8 @@ function selectStories(raw){
     c.rep = withDesc[0] || c.items[0];
   });
   clusters.sort(function(a, b){ return b.score - a.score; });
+  // 이미 보여 준 소식과 비슷한 묶음은 건너뜀
+  clusters = clusters.filter(function(c){ return !shown.some(function(t){ return similar(c.tk, t) >= 0.3; }); });
   var pick = [], used = {};
   clusters.forEach(function(c){ if(pick.length < 5 && !used[c.rep.cat]){ used[c.rep.cat] = 1; pick.push(c); } });
   clusters.forEach(function(c){
@@ -616,15 +612,35 @@ function selectStories(raw){
 }
 
 /* 데이터 상태 */
-var DATA = {mode:'demo', loading:true, stories:[], fetchedAt:0, sources:[], note:''};
+var DATA = {mode:'demo', loading:true, stories:[], fetchedAt:0, sources:[], note:'', raw:null, shown:[], round:1};
 
 function useDemo(note){
   DATA.mode = 'demo'; DATA.stories = DEMO.slice(); DATA.fetchedAt = 0; DATA.sources = []; DATA.note = note || '';
+  DATA.raw = null; DATA.shown = []; DATA.round = 1;
 }
 var loadSeq = 0;
-function setLive(stories, at, sources, via){
+function setLive(stories, at, sources, via, raw){
   DATA.mode = 'live'; DATA.stories = stories; DATA.fetchedAt = at; DATA.sources = sources; DATA.note = ''; DATA.via = via;
-  store('bn5.cache', {at:at, stories:stories, sources:sources, via:via});
+  DATA.raw = raw; DATA.round = 1; DATA.shown = []; markShown(stories);
+  var slim = raw.slice(0, 400).map(function(it){ return Object.assign({}, it, {desc:(it.desc || '').slice(0, 300)}); });
+  if(!store('bn5.cache', {at:at, stories:stories, sources:sources, via:via, raw:slim}))
+    store('bn5.cache', {at:at, stories:stories, sources:sources, via:via});
+}
+function markShown(stories){
+  stories.forEach(function(s){ DATA.shown.push(new Set(tokens(s.title))); });
+}
+/* 받아 둔 뉴스 중 아직 안 본 다음 묶음으로 즉시 교체 (새로 내려받지 않음) */
+function otherNews(){
+  if(!DATA.raw || DATA.mode === 'demo') return false;
+  var st = selectStories(DATA.raw, DATA.shown);
+  if(st.length < 2){
+    DATA.shown = []; DATA.round = 0;
+    st = selectStories(DATA.raw, []);
+    DATA.note = '새 소식을 다 봐서 처음 묶음으로 돌아왔어요.';
+  }else DATA.note = '';
+  if(st.length < 2) return false;
+  DATA.stories = st; DATA.round++; markShown(st);
+  return true;
 }
 /* 같은 사이트에 올려 둔 news.json (GitHub Actions가 매시간 서버 쪽에서 수집) */
 function loadBundled(){
@@ -635,7 +651,7 @@ function loadBundled(){
     if((Date.now() - at) / 36e5 > CACHE_MAX_H) throw new Error('stale');
     var stories = selectStories(j.items);
     if(stories.length < 2) throw new Error('few');
-    return {stories:stories, at:at, sources:j.feeds || []};
+    return {stories:stories, at:at, sources:j.feeds || [], raw:j.items};
   });
 }
 function loadNews(){
@@ -646,7 +662,7 @@ function loadNews(){
   loadBundled().then(function(r){
     if(seq !== loadSeq) return;
     DATA.loading = false;
-    setLive(r.stories, r.at, r.sources, 'server');
+    setLive(r.stories, r.at, r.sources, 'server', r.raw);
     renderStatus();
   }, function(){ if(seq === loadSeq) browserFetch(seq); });
 }
@@ -664,7 +680,7 @@ function browserFetch(seq){
     var stories = [];
     try{ stories = selectStories(raw); }catch(e){ stories = []; }
     if(stories.length >= 2){
-      setLive(stories, Date.now(), ok.map(function(r){ return r.feed; }), 'browser');
+      setLive(stories, Date.now(), ok.map(function(r){ return r.feed; }), 'browser', raw);
       renderStatus();
     }else{
       fallback(ok.length ? '최근 30시간 안의 기사를 충분히 찾지 못했어요.' : '인터넷 연결이 없거나, 뉴스 사이트가 브라우저 접근을 막고 있어요.');
@@ -681,6 +697,7 @@ function tryCache(){
     var fresh = c.stories.filter(function(s){ return (Date.now() - s.time) / 36e5 <= MAX_AGE_H; });
     if(fresh.length >= 2){
       DATA.mode = 'cache'; DATA.stories = fresh; DATA.fetchedAt = c.at; DATA.sources = c.sources || []; DATA.via = c.via || 'browser';
+      DATA.raw = c.raw || null; DATA.shown = []; DATA.round = 1; markShown(fresh);
       DATA.note = '지금은 새로 불러오지 못해, 이전에 모아 둔 헤드라인을 보여 드려요.';
       return true;
     }
@@ -738,7 +755,7 @@ function buildCuts(D){
   var cuts = [], st = D.stories, demo = D.mode === 'demo', n = st.length;
   cuts.push({story:-1, who:'host', mood:'happy', badge:'info',
     text:'안녕하세요, 진행자 달토예요.\n오늘 알아 두면 좋은 이야기 '+n+'개를 골라 왔어요.'});
-  cuts.push({story:-1, who:'realist', mood:demo ? 'think' : 'calm', badge:'info',
+  cuts.push({story:-1, who:'analyst', mood:demo ? 'think' : 'calm', badge:'info',
     text: demo ? '참고로 지금은 실시간 뉴스를 못 불러왔어요.\n그래서 실제 뉴스가 아닌 “예시 이야기”로 보여 드려요.'
                : D.mode === 'cache' ? '지금은 새 소식을 못 불러와서\n'+fmtTime(D.fetchedAt)+'에 모아 둔 헤드라인으로 이야기할게요.'
                : '언론사 공개 헤드라인을 모아 왔어요.\n사실, 해석, 반응은 꼬리표로 구분해 드릴게요.'});
@@ -752,7 +769,7 @@ function buildCuts(D){
     cuts.push({story:i, stage:1, who:'analyst', mood:'think', badge:s.desc ? 'summ' : 'info',
       text: s.desc ? '기사 요약을 보면요.\n'+s.desc : '기사에 따로 요약이 없었어요.\n배경은 아래 “원문 보기”에서 확인해 주세요.'});
     cuts.push({story:i, stage:2, who:'analyst', mood:'calm', badge:'ginterp', text:ANGLE[s.cat] || ANGLE['국내']});
-    cuts.push({story:i, stage:3, who:'realist', mood:'think', badge:'noreact',
+    cuts.push({story:i, stage:3, who:'host', mood:'think', badge:'noreact',
       text:(s.pubs >= 2 ? '이 소식은 수집한 매체 중 '+s.pubs+'곳에서 다뤘어요.\n' : '') + NOREACT[i % NOREACT.length]});
     cuts.push({story:i, stage:4, who:'host', mood:'happy', badge:'key',
       text:'오늘 기억할 한 줄은 이거예요.\n“'+shortTitle(s.title)+'”'});
@@ -831,7 +848,7 @@ function nextStory(){
   finish();
 }
 function startStory(){
-  P.D = {via:DATA.via, mode:DATA.mode, stories:DATA.stories.slice(), fetchedAt:DATA.fetchedAt, sources:DATA.sources.slice(), note:DATA.note};
+  P.D = {round:DATA.round, raw:DATA.raw, via:DATA.via, mode:DATA.mode, stories:DATA.stories.slice(), fetchedAt:DATA.fetchedAt, sources:DATA.sources.slice(), note:DATA.note};
   P.cuts = buildCuts(P.D);
   P.active = true;
   P.playing = !!settings.autoplay;
@@ -846,8 +863,8 @@ function finish(){ stopPlayer(); renderEnd(); show('end'); }
 function fitPanel(){
   var pn = $('panel'), bw = $('bubble').parentNode;
   pn.classList.remove('tight','overflow');
-  if(bw.scrollHeight > bw.clientHeight + 2) pn.classList.add('tight');
-  if(bw.scrollHeight > bw.clientHeight + 2) pn.classList.add('overflow');
+  if(bw.scrollHeight > bw.clientHeight + 4) pn.classList.add('tight');
+  if(bw.scrollHeight > bw.clientHeight + 4) pn.classList.add('overflow');
 }
 function renderCut(){
   var D = P.D;
@@ -886,7 +903,6 @@ function renderCut(){
   });
   $('cast').innerHTML = cast;
   fitPanel();
-  $('hint').style.display = P.idx < 2 ? '' : 'none';
 
   var a = $('srcA');
   if(s){
@@ -902,7 +918,7 @@ function renderCut(){
     }
   }else{
     a.style.display = 'none';
-    $('srcT').textContent = demo ? '지금은 예시 콘텐츠로 진행해요' : '수집 시각 '+fmtTime(D.fetchedAt);
+    $('srcT').textContent = P.idx === 0 ? '👆 화면을 톡 누르면 다음 장면' : demo ? '지금은 예시 콘텐츠로 진행해요' : '수집 시각 '+fmtTime(D.fetchedAt);
   }
   $('prevBtn').disabled = P.idx === 0;
   $('nextStoryBtn').firstChild.nodeValue = c.story >= n - 1 ? '마무리 보기 ' : (c.story < 0 ? '첫 이야기로 ' : '다음 이야기 ');
@@ -928,13 +944,17 @@ function statusHTML(withRetry, D){
     h = '<b>실시간 뉴스를 찾는 중이에요…</b>기다리지 않고 바로 시작해도 돼요. 못 찾으면 예시로 보여 드려요.';
   }else if(D.mode === 'live'){
     h = '<b>✓ 실시간 헤드라인</b>'+esc(fmtTime(D.fetchedAt))+(D.via === 'server' ? ' 자동 수집' : ' 수집')+' · '+esc(D.sources.slice(0,3).join(', '))+(D.sources.length > 3 ? ' 외 '+(D.sources.length-3)+'곳' : '')+
+        '<br>지금 보는 뉴스: <b style="display:inline">'+(D.round || 1)+'번째 묶음</b>'+(D.note ? ' · '+esc(D.note) : '')+
         '<br>커뮤니티 반응은 확인하지 못해 “확인 안 됨”으로 표시해요.';
   }else if(D.mode === 'cache'){
     h = '<b>이전 수집본</b>'+esc(fmtTime(D.fetchedAt))+'에 모은 헤드라인이에요. '+esc(D.note);
   }else{
     h = '<b>데모 예시 콘텐츠</b>실제 뉴스가 아닌 가상 예시예요.'+(D.note ? '<br>'+esc(D.note) : '');
   }
-  if(withRetry && !D.loading) h += '<div class="row"><span></span><button class="linkbtn" type="button" data-retry>다시 불러오기</button></div>';
+  if(withRetry && !D.loading){
+    h += '<div class="row">' + (D.raw && D.mode !== 'demo' ? '<button class="linkbtn" type="button" data-other>🔄 다른 뉴스로 바꾸기</button>' : '<span></span>') +
+         '<button class="linkbtn" type="button" data-retry>다시 불러오기</button></div>';
+  }
   return h;
 }
 function renderStatus(){
@@ -958,6 +978,7 @@ function renderEnd(){
   es.className = 'status ' + (demo ? 'demo' : 'live');
   es.innerHTML = statusHTML(false, D);
   $('castEnd').innerHTML = castFigures('sleepy');
+  $('moreBtn').style.display = DATA.raw && DATA.mode !== 'demo' ? '' : 'none';
 }
 
 /* =========================================================
@@ -966,6 +987,7 @@ function renderEnd(){
 function bind(){
   $('startBtn').addEventListener('click', startStory);
   $('againBtn').addEventListener('click', startStory);
+  $('moreBtn').addEventListener('click', function(){ if(otherNews()) startStory(); });
   $('homeBtn').addEventListener('click', function(){ show('home'); renderStatus(); });
   $('closeBtn').addEventListener('click', function(){ stopPlayer(); show('home'); renderStatus(); });
   $('panel').addEventListener('click', function(){ go(P.idx + 1); });
@@ -984,6 +1006,8 @@ function bind(){
   document.addEventListener('click', function(e){
     var t = e.target.closest ? e.target.closest('[data-retry]') : null;
     if(t) loadNews();
+    var o = e.target.closest ? e.target.closest('[data-other]') : null;
+    if(o && otherNews()) renderStatus();
   });
   $('fsSeg').addEventListener('click', function(e){
     var v = e.target.closest('button'); if(!v) return;
@@ -1013,7 +1037,7 @@ function bind(){
 
 function init(){
   $('today').textContent = todayText();
-  $('castHome').innerHTML = castFigures(function(k){ return {host:'happy', analyst:'calm', realist:'calm'}[k]; });
+  $('castHome').innerHTML = castFigures(function(k){ return {host:'happy', analyst:'calm'}[k]; });
   applySettings();
   bind();
   if(!tryCache()) useDemo();
