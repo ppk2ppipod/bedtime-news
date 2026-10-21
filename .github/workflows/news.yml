@@ -1,0 +1,42 @@
+# 매시간 공개 RSS를 모아 news.json을 만들고, index.html과 함께 GitHub Pages에 배포합니다.
+name: 뉴스 수집 및 배포
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: RSS 수집
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          # 수집이 모두 실패해도 배포는 계속합니다 (앱은 데모로 동작)
+          node scripts/fetch-news.mjs _site/news.json || echo "수집 실패 - 데모로 배포"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
