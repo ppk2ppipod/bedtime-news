@@ -24,10 +24,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
       - name: RSS 수집
         run: |
           mkdir -p _site
@@ -35,7 +35,7 @@ jobs:
           # 수집이 모두 실패해도 배포는 계속합니다 (앱은 데모로 동작)
           node scripts/fetch-news.mjs _site/news.json || echo "수집 실패 - 데모로 배포"
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
       - id: deployment
