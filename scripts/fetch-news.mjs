@@ -62,11 +62,13 @@ async function load(feed) {
 }
 
 const results = await Promise.allSettled(FEEDS.map(load));
-const items = [], feeds = [];
+const items = [], feeds = [], report = [];
 results.forEach((r, i) => {
-  if (r.status === 'fulfilled') { items.push(...r.value); feeds.push(FEEDS[i].name); console.log('ok  ', FEEDS[i].name, r.value.length); }
-  else console.log('fail', FEEDS[i].name, r.reason?.message);
+  if (r.status === 'fulfilled') { items.push(...r.value); feeds.push(FEEDS[i].name); report.push(`${FEEDS[i].name} ${r.value.length}건`); }
+  else report.push(`${FEEDS[i].name} 실패(${r.reason?.message})`);
 });
+// Actions 실행 화면에 피드별 결과를 요약 표시
+console.log(`::notice title=RSS 수집 결과::${report.join(' / ')}`);
 if (!items.length) { console.error('모든 피드 수집 실패'); process.exit(1); }
 await writeFile(OUT, JSON.stringify({ generatedAt: new Date().toISOString(), feeds, items }));
 console.log(`saved ${items.length} items from ${feeds.length} feeds → ${OUT}`);
