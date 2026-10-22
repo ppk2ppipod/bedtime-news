@@ -3,5 +3,5 @@
 귀여운 캐릭터 둘(달토·부엉)이 오늘의 주요 뉴스를 만화처럼 들려주는 단일 HTML 웹앱입니다.
 
 - `index.html` 하나로 실행됩니다 (오프라인이면 데모 예시로 동작).
-- GitHub Actions(`.github/workflows/news.yml`)가 매시간 언론사 공개 RSS의 제목·요약·링크를 모아 `news.json`을 만들고 GitHub Pages에 함께 배포합니다.
+- 관심 분야(경제·국제정세·문화·IT·미국 빅테크·하와이)별 구글 뉴스 RSS와 언론사 RSS를 GitHub Actions(`.github/workflows/news.yml`)가 매시간 모아 `news.json`을 만들고 GitHub Pages에 함께 배포합니다.
 - 커뮤니티 반응은 수집하지 않으며, 확인되지 않은 반응은 "확인 안 됨"으로 표시합니다.

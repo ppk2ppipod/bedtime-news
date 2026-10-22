@@ -63,6 +63,11 @@ a{color:inherit}
 .set-row:first-of-type{border-top:none}
 .set-row .lab{font-size:1.1875rem;font-weight:700}
 .set-row .lab small{display:block;font-size:1rem;font-weight:500;color:var(--ink2)}
+.set-row.col{flex-direction:column;align-items:stretch}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{min-height:48px;padding:0 16px;border-radius:999px;border:2px solid var(--frame);background:transparent;font-size:1.0625rem;font-weight:700}
+.chips button[aria-pressed="true"]{background:var(--navy);color:var(--on-navy)}
+.chips button[aria-pressed="true"]::before{content:"✓ "}
 .seg{display:flex;border:2px solid var(--frame);border-radius:14px;overflow:hidden;flex-shrink:0}
 .seg button{min-height:48px;min-width:64px;padding:0 10px;border:none;background:transparent;font-size:1.0625rem;font-weight:700}
 .seg button+button{border-left:2px solid var(--frame)}
@@ -109,7 +114,7 @@ details[open] summary::after{content:"－"}
 .who{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .who .nm{font-size:1.0625rem;font-weight:800}
 .badge{font-size:.9375rem;font-weight:800;padding:2px 10px;border-radius:999px;border:2px solid currentColor;line-height:1.5}
-.badge.fact{color:var(--fact)} .badge.interp{color:var(--interp)} .badge.react{color:var(--react)} .badge.none{color:var(--warn)} .badge.key{color:var(--ink)}
+.badge.fact{color:var(--fact)} .badge.react{color:var(--react)} .badge.key{color:var(--ink)}
 .say{font-size:1.4375rem;line-height:1.6;font-weight:600;white-space:pre-line;position:relative;z-index:1}
 .say q{quotes:"“" "”";font-weight:800}
 .cast{display:flex;justify-content:space-around;gap:12px;align-items:flex-end;flex-shrink:0}
@@ -185,6 +190,10 @@ details[open] summary::after{content:"－"}
 
   <div class="card settings">
     <h2>보기 설정</h2>
+    <div class="set-row col">
+      <span class="lab">관심 분야<small>고른 분야에서만 뉴스를 골라요</small></span>
+      <div class="chips" id="catChips" role="group" aria-label="관심 분야"></div>
+    </div>
     <div class="set-row">
       <span class="lab">글자 크기</span>
       <div class="seg" id="fsSeg" role="group" aria-label="글자 크기">
@@ -208,9 +217,9 @@ details[open] summary::after{content:"－"}
     <details>
       <summary>뉴스는 어디서 오나요?</summary>
       <div class="about">
-        <p>언론사가 공개한 RSS(구글 뉴스 한국판, 연합뉴스, BBC 코리아 등)의 <b>제목과 요약</b>만 가져와요. 기사 본문이나 커뮤니티 게시글을 긁어 오지는 않아요.</p>
+        <p>언론사가 공개한 RSS(구글 뉴스 분야별·검색 RSS, 연합뉴스, BBC 코리아 등)의 <b>제목과 요약</b>만 가져와요. 하와이·항공권 소식은 드물어서 최근 7일 기사까지 날짜와 함께 보여 드려요. 기사 본문이나 커뮤니티 게시글을 긁어 오지는 않아요.</p>
         <p>브라우저 보안 정책(CORS) 때문에 대부분의 RSS는 바로 열리지 않아요. 아래 설정을 켜면 공개 RSS 중계 서비스(allorigins, corsproxy, codetabs, rss2json)를 거쳐 불러와요. 이때 RSS 주소가 해당 서비스에 전달돼요.</p>
-        <p>사람들의 반응은 확인된 것만 말해요. 확인하지 못하면 “확인 안 됨”이라고 표시해요.</p>
+        <p>AI 해석이나 반응은 붙이지 않고, 언론사 제목과 요약만 그대로 보여 드려요.</p>
         <p>GitHub Pages에 올리면 GitHub Actions가 매시간 RSS를 대신 모아 <b>news.json</b>으로 저장해 두고, 앱은 그 파일을 가장 먼저 읽어요.</p>
         <p>불러오기에 실패하면 <b>데모 예시</b>(실제 뉴스 아님)로 보여 드려요.</p>
       </div>
@@ -281,7 +290,7 @@ details[open] summary::after{content:"－"}
 /* =========================================================
    1. 설정 (이 기기 localStorage에만 저장, 실패해도 동작)
    ========================================================= */
-var DEFAULTS = {fs:1, autoplay:true, speed:'normal', theme:'night', relay:true};
+var DEFAULTS = {fs:1, autoplay:true, speed:'normal', theme:'night', relay:true, cats:['경제','국제정세','문화','IT','미국 빅테크','하와이']};
 var settings = Object.assign({}, DEFAULTS);
 function store(key, val){
   try{
@@ -292,6 +301,9 @@ function store(key, val){
 }
 var saved = store('bn5.settings');
 if(saved && typeof saved === 'object') Object.assign(settings, saved);
+if(!Array.isArray(settings.cats) || !settings.cats.length) settings.cats = DEFAULTS.cats.slice();
+settings.cats = settings.cats.filter(function(c){ return DEFAULTS.cats.indexOf(c) >= 0; });
+if(!settings.cats.length) settings.cats = DEFAULTS.cats.slice();
 function saveSettings(){ store('bn5.settings', settings); }
 
 function applySettings(){
@@ -301,6 +313,9 @@ function applySettings(){
   if(tc) tc.setAttribute('content', settings.theme === 'night' ? '#05070D' : '#FBF6EC');
   setSeg('fsSeg', String(settings.fs));
   setSeg('spSeg', settings.speed);
+  $('catChips').innerHTML = DEFAULTS.cats.map(function(c){
+    return '<button type="button" data-cat="'+c+'" aria-pressed="'+(settings.cats.indexOf(c) >= 0)+'">'+c+'</button>';
+  }).join('');
   $('apSw').setAttribute('aria-checked', String(!!settings.autoplay));
   $('ntSw').setAttribute('aria-checked', String(settings.theme === 'night'));
   $('rlSw').setAttribute('aria-checked', String(!!settings.relay));
@@ -380,52 +395,49 @@ function castFigures(mood){
    3. 데모 콘텐츠 (실제 뉴스가 아닌 가상 예시임을 명시)
    ========================================================= */
 var DEMO = [
-  {cat:'생활', title:'늦은 밤 버스 노선을 늘린 어느 도시', key:'밤길 이동의 편리함과 운영 비용, 두 가지를 함께 봐야 해요.', query:'심야버스 노선 확대', cuts:[
-    ['host','talk','dfact','첫 번째 이야기예요.\n어느 도시가 늦은 밤 다니는 버스 노선을 늘리기로 했대요.'],
-    ['analyst','think','interp','밤늦게 일을 마치는 사람이 많아요.\n택시 잡기 어려운 시간에 버스가 대안이 될 수 있죠.'],
-    ['analyst','calm','interp','다만 승객이 적은 시간이라 운영비가 부담이에요.\n편리함과 예산 사이의 저울질이 필요해요.'],
-    ['host','talk','dreact','이런 소식엔 보통 “퇴근길이 편해진다”는 말과\n“세금이 아깝다”는 말이 함께 나와요.'],
-    ['host','happy','key','정리하면, 밤의 이동권과 비용을\n같이 따져 보는 게 핵심이에요.']]},
-  {cat:'경제', title:'예금 이자를 조금 낮춘 은행들', key:'금리는 저축하는 사람과 빌리는 사람에게 반대로 작용해요.', query:'예금 금리 인하', cuts:[
-    ['host','talk','dfact','두 번째는 돈 이야기예요.\n몇몇 은행이 예금 이자를 조금 낮춘 상황이에요.'],
-    ['analyst','think','interp','은행은 앞으로 금리가 내려갈 거라 볼 때\n이자를 먼저 손보곤 해요. 시장 분위기를 보여 주는 신호죠.'],
-    ['analyst','calm','interp','저축하는 사람에겐 아쉬운 소식이에요.\n대출이 있는 사람은 부담이 줄길 기대하기도 해요.'],
-    ['host','talk','dreact','“이자 받는 재미가 줄었다”는 사람도,\n“대출 이자도 내려가면 좋겠다”는 사람도 있어요.'],
-    ['host','happy','key','핵심은 하나예요.\n금리는 저축하는 쪽과 빌리는 쪽에 반대로 작용해요.']]},
-  {cat:'과학·기술', title:'AI가 만든 사진에 표시를 붙이자는 논의', key:'규칙도 중요하지만, 출처를 한 번 더 확인하는 습관이 가장 든든해요.', query:'AI 생성 이미지 표시', cuts:[
-    ['host','surprised','dfact','세 번째는 기술 이야기예요.\nAI가 만든 사진에 “AI 제작” 표시를 붙이자는 논의예요.'],
-    ['analyst','think','interp','요즘 AI 사진은 진짜와 구분하기 어려워요.\n가짜 뉴스나 사기에 쓰일까 걱정하는 목소리가 커졌죠.'],
-    ['analyst','calm','interp','한편으론 표시를 쉽게 지울 수 있다는 지적도 있어요.\n규칙만큼 확인 기술도 중요하다는 거죠.'],
-    ['host','talk','dreact','“꼭 필요하다”는 쪽과\n“창작자에게 번거롭다”는 쪽으로 의견이 갈릴 만해요.'],
-    ['host','happy','key','결론은요, 보는 사람이 출처를\n한 번 더 확인하는 습관이 제일 든든해요.']]},
-  {cat:'국제', title:'이웃 나라들이 폭염에 함께 대비하기로', key:'국제 약속은 발표보다 실제로 지켜지는지가 더 중요해요.', query:'폭염 국제 협력', cuts:[
-    ['host','talk','dfact','네 번째는 세계 소식이에요.\n이웃한 나라들이 폭염에 함께 대비하기로 한 상황이에요.'],
-    ['analyst','think','interp','더위는 국경을 가리지 않아요.\n날씨 정보를 나누면 경보를 더 빨리 낼 수 있죠.'],
-    ['analyst','calm','interp','그런데 나라마다 돈과 기술 사정이 달라요.\n누가 얼마나 부담할지가 늘 어려운 숙제예요.'],
-    ['host','talk','dreact','“협력은 당연하다”는 반응과\n“약속만 하고 끝날까 걱정”이라는 반응이 같이 나와요.'],
-    ['host','happy','key','핵심은 발표보다 실천이에요.\n약속이 지켜지는지 꾸준히 지켜봐야 해요.']]},
-  {cat:'생활', title:'잠들기 전 화면을 덜 보자는 캠페인', key:'무조건 끊기보다 “여기까지” 시간을 정하는 게 현실적이에요.', query:'수면 스마트폰 사용', cuts:[
-    ['host','talk','dfact','마지막은 우리 이야기예요.\n자기 전 화면을 덜 보자는 캠페인이 열린 상황이에요.'],
-    ['analyst','think','interp','밤에 밝은 화면을 오래 보면\n잠들기 어려울 수 있다고 알려져 있어요.'],
-    ['analyst','calm','interp','그래도 폰으로 하루를 정리하는 사람도 많아요.\n무조건 끊기보다 시간을 정하는 게 현실적이에요.'],
-    ['host','talk','dreact','“알람만 맞추고 내려놓는다”는 사람도,\n“잔잔한 걸 보면 잠이 온다”는 사람도 있어요.'],
-    ['host','sleepy','key','그러니 오늘은 여기까지!\n이 화면을 끄면 바로 쉬는 시간이에요.']]}
+  {cat:'경제', title:'예금 이자를 조금 낮춘 은행들', query:'예금 금리 인하', cuts:[
+    '첫 번째는 경제 소식이에요.\n몇몇 은행이 예금 이자를 조금 낮춘 상황이에요.',
+    '은행들은 시장 금리 흐름을 반영했다고 설명했어요.\n대출 금리 조정 여부는 아직 발표되지 않았어요.']},
+  {cat:'국제정세', title:'이웃 나라들이 폭염에 함께 대비하기로', query:'폭염 국제 협력', cuts:[
+    '다음은 세계 소식이에요.\n이웃한 나라들이 폭염에 함께 대비하기로 한 상황이에요.',
+    '각 나라는 폭염 경보 정보를 서로 나누기로 했어요.\n구체적인 일정은 나중에 정하기로 했어요.']},
+  {cat:'문화', title:'인기 게임이 영화로 만들어진다는 소식', query:'게임 원작 영화', cuts:[
+    '이번엔 문화 소식이에요.\n인기 게임 하나가 영화로 만들어지는 상황이에요.',
+    '제작사는 원작 게임 개발사와 함께 만든다고 밝혔어요.\n개봉 시기는 아직 정해지지 않았어요.']},
+  {cat:'IT', title:'AI가 만든 사진에 표시를 붙이자는 논의', query:'AI 생성 이미지 표시', cuts:[
+    'IT 소식이에요.\nAI가 만든 사진에 “AI 제작” 표시를 붙이자는 논의가 나온 상황이에요.',
+    'AI로 만든 이미지에 표시를 붙이도록 하는 내용이에요.\n시행 시기는 의견을 더 듣고 정할 예정이에요.']},
+  {cat:'미국 빅테크', title:'미국 빅테크들의 실적 발표 시즌', query:'미국 빅테크 실적', cuts:[
+    '미국 IT 기업 소식이에요.\n큰 기술 회사들이 줄줄이 실적을 발표하는 시기예요.',
+    '회사들은 AI 관련 투자 계획도 함께 밝힐 예정이에요.\n발표는 이번 주부터 차례로 이어져요.']},
+  {cat:'하와이', deal:true, title:'하와이 왕복 항공권 할인 행사', query:'하와이 항공권 특가', cuts:[
+    '마지막은 하와이 소식이에요.\n한 항공사가 하와이 왕복 항공권 할인 행사를 여는 상황이에요.',
+    '할인은 정해진 기간에 예약할 때만 적용돼요.\n출발 가능 날짜와 수하물 조건은 항공사 공지에 나와요.']}
 ];
 
 /* =========================================================
    4. 실시간 뉴스 수집 (공개 RSS만, 실패해도 앱 유지)
    ========================================================= */
+var GN = 'hl=ko&gl=KR&ceid=KR:ko';
+function gnSearch(q){ return 'https://news.google.com/rss/search?q=' + encodeURIComponent(q) + '&' + GN; }
 var FEEDS = [
-  {name:'구글 뉴스', url:'https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko', agg:true, w:3},
+  {name:'구글 뉴스 · 경제', url:'https://news.google.com/rss/headlines/section/topic/BUSINESS?'+GN, agg:true, w:2, topic:'경제'},
+  {name:'구글 뉴스 · 국제', url:'https://news.google.com/rss/headlines/section/topic/WORLD?'+GN, agg:true, w:2, topic:'국제정세'},
+  {name:'구글 뉴스 · IT', url:'https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?'+GN, agg:true, w:2, topic:'IT'},
+  {name:'구글 뉴스 · 문화', url:gnSearch('게임 OR 영화 OR 유튜브 OR 넷플릭스 OR 웹툰 when:1d'), agg:true, w:2, topic:'문화'},
+  {name:'구글 뉴스 · 미국 빅테크', url:gnSearch('애플 OR 구글 OR 마이크로소프트 OR 엔비디아 OR 메타 OR 아마존 OR 테슬라 OR 오픈AI when:2d'), agg:true, w:2, topic:'미국 빅테크'},
+  {name:'구글 뉴스 · 하와이', url:gnSearch('하와이 when:7d'), agg:true, w:2, topic:'하와이'},
+  {name:'구글 뉴스 · 하와이 항공권', url:gnSearch('하와이 항공권 OR 하와이 특가 OR 하와이안항공 OR 호놀룰루 노선 when:7d'), agg:true, w:2, topic:'하와이'},
   {name:'연합뉴스', url:'https://www.yna.co.kr/rss/news.xml', w:2},
   {name:'BBC 코리아', url:'https://feeds.bbci.co.uk/korean/rss.xml', w:1},
+  {name:'매일경제', url:'https://www.mk.co.kr/rss/30000001/', w:1},
   {name:'한겨레', url:'https://www.hani.co.kr/rss/', w:1},
   {name:'경향신문', url:'https://www.khan.co.kr/rss/rssdata/total_news.xml', w:1},
   {name:'동아일보', url:'https://rss.donga.com/total.xml', w:1},
-  {name:'조선일보', url:'https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml', w:1},
-  {name:'매일경제', url:'https://www.mk.co.kr/rss/30000001/', w:1}
+  {name:'조선일보', url:'https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml', w:1}
 ];
 var MAX_AGE_H = 30;      // 이보다 오래된 기사는 "오늘의 뉴스"로 쓰지 않음
+var HAWAII_MAX_AGE_H = 168; // 하와이·항공권 소식은 드물어서 7일까지 (날짜를 함께 표시)
 var CACHE_MAX_H = 20;    // 저장된 수집본 유효 시간
 
 function withTimeout(ms){
@@ -488,7 +500,7 @@ function parseFeed(xml, feed){
       date: tagText(it, ['pubDate','dc:date','published','updated']),
       desc: tagText(it, ['description','summary','content:encoded','content']),
       source: tagText(it, ['source']),
-      feed: feed.name, agg: !!feed.agg, w: feed.w, rank: i
+      feed: feed.name, agg: !!feed.agg, w: feed.w, rank: i, topic: feed.topic || ''
     });
   }
   if(!out.length) throw new Error('empty');
@@ -512,7 +524,7 @@ function loadFeed(feed){
           if(!j || j.status !== 'ok' || !j.items || !j.items.length) throw new Error('relay');
           return j.items.map(function(it, i){
             return {title:it.title||'', link:it.link||'', date:it.pubDate ? it.pubDate.replace(' ','T')+'Z' : '',
-              desc:it.description||'', source:'', feed:feed.name, agg:!!feed.agg, w:feed.w, rank:i};
+              desc:it.description||'', source:'', feed:feed.name, agg:!!feed.agg, w:feed.w, rank:i, topic:feed.topic||''};
           });
         });
       });
@@ -521,6 +533,22 @@ function loadFeed(feed){
 
 /* 정리·분류·선별 */
 var JUNK = /\[(포토|사진|영상|인사|부고|게시판|그래픽|카드뉴스|만평|화보|운세|알림|공지|광고|AD|PR|오늘의\s*날씨)\]|오늘의\s*운세|띠별\s*운세|부고|^\s*\[?인사\]?\s/i;
+/* 구글 뉴스 설명란의 '같은 소식, 다른 매체' 목록: <a>제목</a> <font>매체</font> */
+function relatedFromGoogle(html){
+  var out = [];
+  if(!html || html.indexOf('<a') < 0) return out;
+  try{
+    var d = new DOMParser().parseFromString('<!doctype html><body>' + html, 'text/html');
+    var as = d.body.querySelectorAll('a');
+    for(var i=0;i<as.length;i++){
+      var t = (as[i].textContent || '').replace(/\s+/g,' ').trim();
+      var f = as[i].parentNode ? as[i].parentNode.querySelector('font') : null;
+      var src = f ? f.textContent.replace(/\s+/g,' ').trim() : '';
+      if(t && src) out.push({title:t, source:src});
+    }
+  }catch(e){}
+  return out;
+}
 function cleanItem(it){
   var title = stripHTML(it.title), source = it.source;
   if(it.agg){
@@ -535,14 +563,19 @@ function cleanItem(it){
   if(!link) return null;
   var d = it.date ? new Date(it.date) : null;
   if(!d || isNaN(d.getTime())) return null;                       // 날짜 없는 기사는 오늘 뉴스로 쓰지 않음
-  var ageH = (Date.now() - d.getTime()) / 36e5;
-  if(ageH > MAX_AGE_H || ageH < -2) return null;
   var desc = stripHTML(it.desc)
     .replace(/^\s*[\(\[][^\)\]]{0,30}[\)\]]\s*([가-힣]{2,4}\s*)?(기자|특파원)?\s*=\s*/, '')
     .replace(/[가-힣]{2,4}\s*기자\s*[\w.]+@[\w.]+/g, '').trim();
+  var related = it.agg ? relatedFromGoogle(it.desc) : [];
   if(it.agg || desc.indexOf(title.slice(0, 12)) === 0 || desc.length < 15) desc = '';
+  // 하와이·빅테크는 키워드가 우선, 그 외엔 주제 피드의 분야, 없으면 키워드 분류
+  var kw = categorize(title+' '+desc), cat = (kw === '하와이' || kw === '미국 빅테크') ? kw : (it.topic || kw);
+  if(!cat || settings.cats.indexOf(cat) < 0) return null;        // 관심 분야가 아니면 제외
+  var ageH = (Date.now() - d.getTime()) / 36e5;
+  if(ageH > (cat === '하와이' ? HAWAII_MAX_AGE_H : MAX_AGE_H) || ageH < -2) return null;
+  var deal = cat === '하와이' && DEAL.test(title + ' ' + desc);
   return {title:title, link:link, time:d.getTime(), desc:trimDesc(desc), source:source || it.feed,
-          feed:it.feed, agg:it.agg, w:it.w, rank:it.rank, cat:categorize(title+' '+desc)};
+          feed:it.feed, agg:it.agg, w:it.w, rank:it.rank, cat:cat, deal:deal, related:related};
 }
 function trimDesc(s){
   if(!s) return '';
@@ -555,15 +588,19 @@ function trimDesc(s){
   if(!out) out = s.slice(0, 100).replace(/\s\S*$/, '') + '…';
   return out.trim();
 }
+var INTERESTS = ['경제','국제정세','문화','IT','미국 빅테크','하와이'];
 var CATS = [
-  ['과학·기술', /AI|인공지능|반도체|우주|위성|로봇|과학|연구진|기술|플랫폼|배터리|전기차|데이터|해킹|보안|챗GPT|빅테크|애플|구글|삼성전자|SK하이닉스|엔비디아|양자|바이오|백신|신약/],
-  ['경제', /금리|환율|주가|코스피|코스닥|증시|물가|부동산|아파트|수출|수입|매출|영업이익|은행|원화|달러|관세|투자|경제|고용|일자리|실업|GDP|성장률|기업|유가|세금|예산|가계|대출/],
-  ['국제', /미국|中|美|日|중국|일본|러시아|우크라|이스라엘|가자|이란|유럽|EU|유엔|UN|트럼프|백악관|나토|NATO|정상회담|외교|영국|프랑스|독일|인도|대만|중동/],
-  ['생활', /날씨|기온|폭염|한파|태풍|미세먼지|건강|병원|의료|교통|지하철|버스|학교|교육|수능|축제|여행|음식|소비자|주말|안전|사고|화재|독감|감기/]
+  ['하와이', /하와이|호놀룰루|와이키키|마우이|오아후|빅아일랜드|Hawaii|Honolulu/i],
+  ['미국 빅테크', /애플|아이폰|구글|알파벳|마이크로소프트|엔비디아|메타(?!버스)|페이스북|인스타그램|아마존|AWS|테슬라|머스크|오픈AI|OpenAI|챗GPT|ChatGPT|앤트로픽|빅테크|실리콘밸리|퀄컴|인텔|AMD|팀\s?쿡|젠슨\s?황|저커버그|올트먼/],
+  ['문화', /게임|영화|유튜브|넷플릭스|디즈니|OTT|드라마|웹툰|애니|K팝|케이팝|아이돌|흥행|박스오피스|관객|개봉|닌텐도|플레이스테이션|엑스박스|e스포츠|롤드컵|스팀|크리에이터|유튜버|스트리머|치지직|티빙|웨이브|콘서트|공연/],
+  ['IT', /AI|인공지능|반도체|스마트폰|갤럭시|앱|플랫폼|소프트웨어|클라우드|해킹|보안|IT|데이터센터|칩|로봇|통신|5G|6G|카카오|네이버|삼성전자|SK하이닉스|LLM|생성형|디지털/],
+  ['경제', /금리|환율|주가|코스피|코스닥|증시|물가|부동산|아파트|수출|수입|매출|영업이익|은행|원화|달러|관세|투자|경제|고용|일자리|실업|GDP|성장률|유가|가계|대출|금값|비트코인/],
+  ['국제정세', /미국|中|美|日|중국|일본|러시아|우크라|이스라엘|가자|이란|유럽|EU|유엔|UN|트럼프|백악관|나토|NATO|정상회담|외교|영국|프랑스|독일|인도|대만|중동|북한|휴전|전쟁/]
 ];
+var DEAL = /특가|할인|프로모션|이벤트|항공권|운임|세일|취항|증편|노선|직항|마일리지/;
 function categorize(t){
   for(var i=0;i<CATS.length;i++) if(CATS[i][1].test(t)) return CATS[i][0];
-  return '국내';
+  return '';
 }
 function tokens(t){
   return t.replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/)
@@ -601,22 +638,34 @@ function selectStories(raw, shown){
   // 이미 보여 준 소식과 비슷한 묶음은 건너뜀
   clusters = clusters.filter(function(c){ return !shown.some(function(t){ return similar(c.tk, t) >= 0.3; }); });
   var pick = [], used = {};
-  clusters.forEach(function(c){ if(pick.length < 5 && !used[c.rep.cat]){ used[c.rep.cat] = 1; pick.push(c); } });
+  var MAXN = 6;
+  clusters.forEach(function(c){ if(pick.length < MAXN && !used[c.rep.cat]){ used[c.rep.cat] = 1; pick.push(c); } });
   clusters.forEach(function(c){
-    if(pick.length < 5 && pick.indexOf(c) < 0 && (used[c.rep.cat] || 0) < 2){ used[c.rep.cat] = (used[c.rep.cat] || 0) + 1; pick.push(c); }
+    if(pick.length < MAXN && pick.indexOf(c) < 0 && (used[c.rep.cat] || 0) < 2){ used[c.rep.cat] = (used[c.rep.cat] || 0) + 1; pick.push(c); }
   });
-  pick.sort(function(a, b){ return b.score - a.score; });
+  pick.sort(function(a, b){ return (INTERESTS.indexOf(a.rep.cat) - INTERESTS.indexOf(b.rep.cat)) || (b.score - a.score); });
   return pick.map(function(c){
     var r = c.rep;
-    return {cat:r.cat, title:r.title, desc:r.desc, link:r.link, source:r.source, time:r.time, pubs:c.pubs};
+    var seenSrc = {}, others = [];
+    seenSrc[r.source] = 1;
+    var cand = [];
+    c.items.forEach(function(x){ cand.push({title:x.title, source:x.source}); (x.related || []).forEach(function(y){ cand.push(y); }); });
+    cand.forEach(function(x){
+      var t = x.title.replace(/\s[-–]\s[^-–]{1,30}$/, '');
+      if(others.length < 2 && !seenSrc[x.source] && t !== r.title){ seenSrc[x.source] = 1; others.push({title:t, source:x.source}); }
+    });
+    return {cat:r.cat, deal:r.deal, title:r.title, desc:r.desc, link:r.link, source:r.source, time:r.time, pubs:c.pubs, others:others};
   });
 }
 
 /* 데이터 상태 */
 var DATA = {mode:'demo', loading:true, stories:[], fetchedAt:0, sources:[], note:'', raw:null, shown:[], round:1};
 
+function demoStories(){
+  return DEMO.filter(function(d){ return settings.cats.indexOf(d.cat) >= 0; });
+}
 function useDemo(note){
-  DATA.mode = 'demo'; DATA.stories = DEMO.slice(); DATA.fetchedAt = 0; DATA.sources = []; DATA.note = note || '';
+  DATA.mode = 'demo'; DATA.stories = demoStories(); DATA.fetchedAt = 0; DATA.sources = []; DATA.note = note || '';
   DATA.raw = null; DATA.shown = []; DATA.round = 1;
 }
 var loadSeq = 0;
@@ -630,6 +679,16 @@ function setLive(stories, at, sources, via, raw){
 function markShown(stories){
   stories.forEach(function(s){ DATA.shown.push(new Set(tokens(s.title))); });
 }
+/* 관심 분야가 바뀌면 받아 둔 뉴스에서 다시 고름 */
+function reselect(){
+  if(DATA.raw && DATA.mode !== 'demo'){
+    var st = [];
+    try{ st = selectStories(DATA.raw, []); }catch(e){}
+    DATA.shown = []; DATA.round = 1; DATA.note = st.length ? '' : '고른 분야의 최근 기사가 없어요.';
+    DATA.stories = st; markShown(st);
+  }else if(DATA.mode === 'demo') DATA.stories = demoStories();
+  renderStatus();
+}
 /* 받아 둔 뉴스 중 아직 안 본 다음 묶음으로 즉시 교체 (새로 내려받지 않음) */
 function otherNews(){
   if(!DATA.raw || DATA.mode === 'demo') return false;
@@ -639,7 +698,7 @@ function otherNews(){
     st = selectStories(DATA.raw, []);
     DATA.note = '새 소식을 다 봐서 처음 묶음으로 돌아왔어요.';
   }else DATA.note = '';
-  if(st.length < 2) return false;
+  if(!st.length) return false;
   DATA.stories = st; DATA.round++; markShown(st);
   return true;
 }
@@ -651,7 +710,7 @@ function loadBundled(){
     if(!j || !j.items || !j.items.length || !at) throw new Error('empty');
     if((Date.now() - at) / 36e5 > CACHE_MAX_H) throw new Error('stale');
     var stories = selectStories(j.items);
-    if(stories.length < 2) throw new Error('few');
+    if(!stories.length) throw new Error('few');
     return {stories:stories, at:at, sources:j.feeds || [], raw:j.items};
   });
 }
@@ -680,7 +739,7 @@ function browserFetch(seq){
     ok.forEach(function(r){ raw = raw.concat(r.items); });
     var stories = [];
     try{ stories = selectStories(raw); }catch(e){ stories = []; }
-    if(stories.length >= 2){
+    if(stories.length >= 1){
       setLive(stories, Date.now(), ok.map(function(r){ return r.feed; }), 'browser', raw);
       renderStatus();
     }else{
@@ -695,8 +754,13 @@ function fallback(reason){
 function tryCache(){
   var c = store('bn5.cache');
   if(c && c.stories && c.stories.length && (Date.now() - c.at) / 36e5 < CACHE_MAX_H){
-    var fresh = c.stories.filter(function(s){ return (Date.now() - s.time) / 36e5 <= MAX_AGE_H; });
-    if(fresh.length >= 2){
+    var fresh = [];
+    try{
+      fresh = c.raw ? selectStories(c.raw, []) : c.stories.filter(function(s){
+        return settings.cats.indexOf(s.cat) >= 0 && (Date.now() - s.time) / 36e5 <= (s.cat === '하와이' ? HAWAII_MAX_AGE_H : MAX_AGE_H);
+      });
+    }catch(e){ fresh = []; }
+    if(fresh.length >= 1){
       DATA.mode = 'cache'; DATA.stories = fresh; DATA.fetchedAt = c.at; DATA.sources = c.sources || []; DATA.via = c.via || 'browser';
       DATA.raw = c.raw || null; DATA.shown = []; DATA.round = 1; markShown(fresh);
       DATA.note = '지금은 새로 불러오지 못해, 이전에 모아 둔 헤드라인을 보여 드려요.';
@@ -725,55 +789,38 @@ function todayText(){
 /* =========================================================
    6. 컷 구성 (뉴스 1개 = 서론·본론·쟁점·여론·결론 5컷)
    ========================================================= */
-var STAGES = ['무슨 일이 있었나?','왜 중요할까?','엇갈린 시선','사람들의 반응','핵심 정리'];
 var BADGE = {
-  fact:   ['fact',  function(s){ return '사실 · '+s.source; }],
+  fact:   ['fact',  function(s){ return '뉴스 · '+s.source; }],
   summ:   ['fact',  function(s){ return '기사 요약 · '+s.source; }],
+  others: ['fact',  function(){ return '다른 매체 보도'; }],
   dfact:  ['react', function(){ return '예시 상황 (가상)'; }],
-  interp: ['interp',function(){ return 'AI 해석'; }],
-  ginterp:['interp',function(){ return 'AI 해석 · 일반적 관점'; }],
-  dreact: ['react', function(){ return '가상 반응 예시'; }],
-  noreact:['none',  function(){ return '반응 확인 안 됨'; }],
-  key:    ['key',   function(){ return '핵심 정리'; }],
   info:   ['key',   function(){ return '안내'; }]
 };
-var ANGLE = {
-  '경제':'경제 소식은 누가 이득을 보고\n누가 부담을 지는지 나눠 보면 쉬워요.\n수치는 후속 보도로 바뀔 수도 있어요.',
-  '국제':'국제 소식은 나라마다 입장이 달라요.\n한쪽 발표만 보고 판단하지 않는 게 좋아요.',
-  '과학·기술':'새 기술 소식엔 기대와 걱정이 함께 따라와요.\n실제로 언제, 누구에게 쓰이는지가 중요해요.',
-  '생활':'생활 소식은 내 일상에\n언제부터, 어떻게 닿는지가 핵심이에요.',
-  '국내':'이런 사안은 보는 사람마다 입장이 다를 수 있어요.\n여러 매체의 보도를 비교하면 균형 잡기 쉬워요.'
-};
-var NOREACT = [
-  '사람들 반응은 제가 직접 확인하지 못했어요.\n확인 안 된 여론을 지어내진 않을게요.',
-  '이 소식에 대한 커뮤니티 반응은\n확인된 자료가 없어요. 짐작으로 말하지 않을게요.',
-  '반응은 아직 확인하지 못했어요.\n궁금하면 원문과 다른 매체 보도를 같이 봐요.'
-];
-function shortTitle(t){ return t.length > 42 ? t.slice(0, 40).replace(/\s\S*$/, '') + '…' : t; }
 var ORD = ['첫 번째','두 번째','세 번째','네 번째','다섯 번째','여섯 번째'];
 
 function buildCuts(D){
   var cuts = [], st = D.stories, demo = D.mode === 'demo', n = st.length;
   cuts.push({story:-1, who:'host', mood:'happy', badge:'info',
-    text:'안녕하세요, 진행자 달토예요.\n오늘 알아 두면 좋은 이야기 '+n+'개를 골라 왔어요.'});
+    text:'안녕하세요, 진행자 달토예요.\n관심 분야에서 오늘의 이야기 '+n+'개를 골라 왔어요.'});
   cuts.push({story:-1, who:'analyst', mood:demo ? 'think' : 'calm', badge:'info',
     text: demo ? '참고로 지금은 실시간 뉴스를 못 불러왔어요.\n그래서 실제 뉴스가 아닌 “예시 이야기”로 보여 드려요.'
                : D.mode === 'cache' ? '지금은 새 소식을 못 불러와서\n'+fmtTime(D.fetchedAt)+'에 모아 둔 헤드라인으로 이야기할게요.'
-               : '언론사 공개 헤드라인을 모아 왔어요.\n사실, 해석, 반응은 꼬리표로 구분해 드릴게요.'});
+               : '언론사 헤드라인과 요약을\n그대로 전해 드릴게요.'});
   st.forEach(function(s, i){
+    var list = [];
     if(demo){
-      s.cuts.forEach(function(c, k){ cuts.push({story:i, stage:k, who:c[0], mood:c[1], badge:c[2], text:c[3]}); });
-      return;
+      list.push({name:'헤드라인', who:'host', mood:'talk', badge:'dfact', text:s.cuts[0]});
+      list.push({name:'상황 설명', who:'analyst', mood:'talk', badge:'dfact', text:s.cuts[1]});
+    }else{
+      list.push({name:'헤드라인', who:'host', mood:i === 0 ? 'talk' : 'surprised', badge:'fact',
+        text:ORD[i]+' 소식이에요. '+((Date.now() - s.time) / 36e5 > MAX_AGE_H ? fmtTime(s.time)+'에 나온 ' : '')+s.source+' 보도예요.\n“'+s.title+'”'});
+      if(s.desc) list.push({name:'기사 요약', who:'analyst', mood:'talk', badge:'summ', text:s.desc});
+      else if(s.others && s.others.length) list.push({name:'다른 매체 보도', who:'analyst', mood:'talk', badge:'others',
+        text:s.others.map(function(o){ return '· '+o.title+' ('+o.source+')'; }).join('\n')});
     }
-    cuts.push({story:i, stage:0, who:'host', mood:i === 0 ? 'talk' : 'surprised', badge:'fact',
-      text:ORD[i]+' 소식이에요. '+s.source+' 보도예요.\n“'+s.title+'”'});
-    cuts.push({story:i, stage:1, who:'analyst', mood:'think', badge:s.desc ? 'summ' : 'info',
-      text: s.desc ? '기사 요약을 보면요.\n'+s.desc : '기사에 따로 요약이 없었어요.\n배경은 아래 “원문 보기”에서 확인해 주세요.'});
-    cuts.push({story:i, stage:2, who:'analyst', mood:'calm', badge:'ginterp', text:ANGLE[s.cat] || ANGLE['국내']});
-    cuts.push({story:i, stage:3, who:'host', mood:'think', badge:'noreact',
-      text:(s.pubs >= 2 ? '이 소식은 수집한 매체 중 '+s.pubs+'곳에서 다뤘어요.\n' : '') + NOREACT[i % NOREACT.length]});
-    cuts.push({story:i, stage:4, who:'host', mood:'happy', badge:'key',
-      text:'오늘 기억할 한 줄은 이거예요.\n“'+shortTitle(s.title)+'”'});
+    list.forEach(function(c, k){
+      cuts.push({story:i, stage:k, nst:list.length, stageName:c.name, who:c.who, mood:c.mood, badge:c.badge, text:c.text});
+    });
   });
   cuts.push({story:n, who:'host', mood:'sleepy', badge:'info',
     text:'오늘 이야기는 여기까지예요.\n들어 줘서 고마워요. 푹 자요!'});
@@ -875,11 +922,11 @@ function renderCut(){
   var mc = $('modeChip');
   mc.className = 'mode ' + (demo ? 'demo' : 'live');
   mc.textContent = demo ? '예시' : D.mode === 'cache' ? '이전 수집본' : '실시간';
-  $('catChip').textContent = s ? s.cat : (c.story < 0 ? '인사' : '마무리');
-  $('stageT').textContent = s ? (c.stage+1)+'. '+STAGES[c.stage] : (c.story < 0 ? '오늘 다룰 이야기' : '편안한 밤 되세요');
+  $('catChip').textContent = s ? s.cat + (s.deal ? ' · 항공권 특가' : '') : (c.story < 0 ? '인사' : '마무리');
+  $('stageT').textContent = s ? c.stageName : (c.story < 0 ? '오늘 다룰 이야기' : '편안한 밤 되세요');
 
   var dots = '';
-  if(s){ for(var k=0;k<5;k++) dots += '<i class="'+(k < c.stage ? 'done' : k === c.stage ? 'on' : '')+'"></i>'; }
+  if(s){ for(var k=0;k<c.nst;k++) dots += '<i class="'+(k < c.stage ? 'done' : k === c.stage ? 'on' : '')+'"></i>'; }
   else { for(var m=0;m<n;m++) dots += '<i class="'+(c.story >= n ? 'done' : '')+'"></i>'; }
   $('dots').innerHTML = dots;
 
@@ -946,7 +993,7 @@ function statusHTML(withRetry, D){
   }else if(D.mode === 'live'){
     h = '<b>✓ 실시간 헤드라인</b>'+esc(fmtTime(D.fetchedAt))+(D.via === 'server' ? ' 자동 수집' : ' 수집')+' · '+esc(D.sources.slice(0,3).join(', '))+(D.sources.length > 3 ? ' 외 '+(D.sources.length-3)+'곳' : '')+
         '<br>지금 보는 뉴스: <b style="display:inline">'+(D.round || 1)+'번째 묶음</b>'+(D.note ? ' · '+esc(D.note) : '')+
-        '<br>커뮤니티 반응은 확인하지 못해 “확인 안 됨”으로 표시해요.';
+        '';
   }else if(D.mode === 'cache'){
     h = '<b>이전 수집본</b>'+esc(fmtTime(D.fetchedAt))+'에 모은 헤드라인이에요. '+esc(D.note);
   }else{
@@ -968,10 +1015,10 @@ function renderEnd(){
   var D = P.D || DATA;
   var demo = D.mode === 'demo', h = '';
   D.stories.forEach(function(s, i){
-    var key = demo ? s.key : s.title;
+    var key = s.title;
     var link = demo ? 'https://news.google.com/search?hl=ko&gl=KR&ceid=KR:ko&q='+encodeURIComponent(s.query) : s.link;
     h += '<li><span class="chip">'+(i+1)+' · '+esc(s.cat)+'</span><p class="k">'+esc(key)+'</p>'+
-         '<div class="m"><span>'+(demo ? '데모 예시 · '+esc(s.title) : esc(s.source)+' · '+esc(fmtTime(s.time)))+'</span>'+
+         '<div class="m"><span>'+(demo ? '데모 예시 · 실제 뉴스 아님' : esc(s.source)+' · '+esc(fmtTime(s.time)))+'</span>'+
          '<a href="'+esc(link)+'" target="_blank" rel="noopener noreferrer">'+(demo ? '관련 뉴스 ↗' : '원문 ↗')+'</a></div></li>';
   });
   $('sumList').innerHTML = h;
@@ -1035,6 +1082,14 @@ function bind(){
     settings.speed = v.getAttribute('data-v'); saveSettings(); applySettings(); renderStatus();
   });
   $('apSw').addEventListener('click', function(){ settings.autoplay = !settings.autoplay; saveSettings(); applySettings(); });
+  $('catChips').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-cat]'); if(!b) return;
+    var c = b.getAttribute('data-cat'), k = settings.cats.indexOf(c);
+    if(k >= 0){ if(settings.cats.length === 1) return; settings.cats.splice(k, 1); }   // 최소 1개는 남김
+    else settings.cats.push(c);
+    settings.cats.sort(function(a, z){ return DEFAULTS.cats.indexOf(a) - DEFAULTS.cats.indexOf(z); });
+    saveSettings(); applySettings(); reselect();
+  });
   $('ntSw').addEventListener('click', function(){ settings.theme = settings.theme === 'night' ? 'day' : 'night'; saveSettings(); applySettings(); });
   $('rlSw').addEventListener('click', function(){ settings.relay = !settings.relay; saveSettings(); applySettings(); loadNews(); });
 

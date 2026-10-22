@@ -2,15 +2,24 @@
 // GitHub Actions에서 매시간 실행됩니다. 외부 패키지 없이 Node 20+ 내장 fetch만 사용합니다.
 import { writeFile } from 'node:fs/promises';
 
+const GN = 'hl=ko&gl=KR&ceid=KR:ko';
+const gnSearch = q => `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&${GN}`;
+// index.html의 FEEDS와 같은 목록 (topic = 그 피드가 담당하는 관심 분야)
 const FEEDS = [
-  { name: '구글 뉴스', url: 'https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko', agg: true, w: 3 },
+  { name: '구글 뉴스 · 경제', url: `https://news.google.com/rss/headlines/section/topic/BUSINESS?${GN}`, agg: true, w: 2, topic: '경제' },
+  { name: '구글 뉴스 · 국제', url: `https://news.google.com/rss/headlines/section/topic/WORLD?${GN}`, agg: true, w: 2, topic: '국제정세' },
+  { name: '구글 뉴스 · IT', url: `https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?${GN}`, agg: true, w: 2, topic: 'IT' },
+  { name: '구글 뉴스 · 문화', url: gnSearch('게임 OR 영화 OR 유튜브 OR 넷플릭스 OR 웹툰 when:1d'), agg: true, w: 2, topic: '문화' },
+  { name: '구글 뉴스 · 미국 빅테크', url: gnSearch('애플 OR 구글 OR 마이크로소프트 OR 엔비디아 OR 메타 OR 아마존 OR 테슬라 OR 오픈AI when:2d'), agg: true, w: 2, topic: '미국 빅테크' },
+  { name: '구글 뉴스 · 하와이', url: gnSearch('하와이 when:7d'), agg: true, w: 2, topic: '하와이' },
+  { name: '구글 뉴스 · 하와이 항공권', url: gnSearch('하와이 항공권 OR 하와이 특가 OR 하와이안항공 OR 호놀룰루 노선 when:7d'), agg: true, w: 2, topic: '하와이' },
   { name: '연합뉴스', url: 'https://www.yna.co.kr/rss/news.xml', w: 2 },
   { name: 'BBC 코리아', url: 'https://feeds.bbci.co.uk/korean/rss.xml', w: 1 },
+  { name: '매일경제', url: 'https://www.mk.co.kr/rss/30000001/', w: 1 },
   { name: '한겨레', url: 'https://www.hani.co.kr/rss/', w: 1 },
   { name: '경향신문', url: 'https://www.khan.co.kr/rss/rssdata/total_news.xml', w: 1 },
   { name: '동아일보', url: 'https://rss.donga.com/total.xml', w: 1 },
-  { name: '조선일보', url: 'https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml', w: 1 },
-  { name: '매일경제', url: 'https://www.mk.co.kr/rss/30000001/', w: 1 }
+  { name: '조선일보', url: 'https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml', w: 1 }
 ];
 const OUT = process.argv[2] || 'news.json';
 
@@ -45,7 +54,7 @@ function parse(xml, feed) {
       title: tag(b, ['title']), link: entities(link),
       date: tag(b, ['pubDate', 'dc:date', 'published', 'updated']),
       desc: tag(b, ['description', 'summary']).slice(0, 600),
-      source: tag(b, ['source']), feed: feed.name, agg: !!feed.agg, w: feed.w, rank: i
+      source: tag(b, ['source']), feed: feed.name, agg: !!feed.agg, w: feed.w, rank: i, topic: feed.topic || ''
     };
   }).filter(it => it.title && /^https?:\/\//.test(it.link));
 }
