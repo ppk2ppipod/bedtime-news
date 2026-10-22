@@ -277,7 +277,7 @@ details[open] summary::after{content:"－"}
   <div class="status" id="endStatus"></div>
   <p class="night">오늘도 수고 많았어요.<br>이제 화면을 끄고 푹 쉬어요. 🌙</p>
   <div class="endbtns">
-    <button class="start" id="moreBtn" type="button">🔄 다른 뉴스 5개 더 보기</button>
+    <button class="start" id="moreBtn" type="button">🔄 다른 뉴스 더 보기</button>
     <button class="btn" id="againBtn" type="button">처음부터 다시 보기</button>
     <button class="btn" id="homeBtn" type="button">처음 화면으로</button>
   </div>
@@ -610,15 +610,15 @@ function tokens(t){
 function similar(a, b){
   var inter = 0; a.forEach(function(x){ if(b.has(x)) inter++; });
   var uni = a.size + b.size - inter;
-  return uni ? inter / uni : 0;
+  return inter >= 2 && uni ? inter / uni : 0;    // 단어 1개만 겹치면 같은 소식으로 보지 않음
 }
 function selectStories(raw, shown){
   shown = shown || [];
   var items = raw.map(cleanItem).filter(Boolean), clusters = [];
   items.forEach(function(it){
     var tk = new Set(tokens(it.title)), hit = null;
-    for(var i=0;i<clusters.length;i++){ if(similar(tk, clusters[i].tk) >= 0.3){ hit = clusters[i]; break; } }
-    if(!hit){ hit = {tk:tk, items:[]}; clusters.push(hit); }
+    for(var i=0;i<clusters.length;i++){ if(clusters[i].cat === it.cat && similar(tk, clusters[i].tk) >= 0.3){ hit = clusters[i]; break; } }
+    if(!hit){ hit = {tk:tk, cat:it.cat, items:[]}; clusters.push(hit); }
     hit.items.push(it);
   });
   clusters.forEach(function(c){
@@ -637,13 +637,18 @@ function selectStories(raw, shown){
   clusters.sort(function(a, b){ return b.score - a.score; });
   // 이미 보여 준 소식과 비슷한 묶음은 건너뜀
   clusters = clusters.filter(function(c){ return !shown.some(function(t){ return similar(c.tk, t) >= 0.3; }); });
-  var pick = [], used = {};
-  var MAXN = 6;
-  clusters.forEach(function(c){ if(pick.length < MAXN && !used[c.rep.cat]){ used[c.rep.cat] = 1; pick.push(c); } });
-  clusters.forEach(function(c){
-    if(pick.length < MAXN && pick.indexOf(c) < 0 && (used[c.rep.cat] || 0) < 2){ used[c.rep.cat] = (used[c.rep.cat] || 0) + 1; pick.push(c); }
-  });
-  pick.sort(function(a, b){ return (INTERESTS.indexOf(a.rep.cat) - INTERESTS.indexOf(b.rep.cat)) || (b.score - a.score); });
+  var pick = [];
+  // 분야별로 중요도 순 줄을 세운 뒤, 분야를 번갈아 가며 한 개씩 담음 (최대 MAXN개)
+  var MAXN = 100, queues = {};
+  INTERESTS.forEach(function(k){ queues[k] = []; });
+  clusters.forEach(function(c){ if(queues[c.rep.cat]) queues[c.rep.cat].push(c); });
+  for(var added = true; added && pick.length < MAXN;){
+    added = false;
+    for(var q=0;q<INTERESTS.length && pick.length < MAXN;q++){
+      var next = queues[INTERESTS[q]].shift();
+      if(next){ pick.push(next); added = true; }
+    }
+  }
   return pick.map(function(c){
     var r = c.rep;
     var seenSrc = {}, others = [];
@@ -796,12 +801,12 @@ var BADGE = {
   dfact:  ['react', function(){ return '예시 상황 (가상)'; }],
   info:   ['key',   function(){ return '안내'; }]
 };
-var ORD = ['첫 번째','두 번째','세 번째','네 번째','다섯 번째','여섯 번째'];
+function ordinal(i){ return i === 0 ? '첫 번째' : (i + 1) + '번째'; }
 
 function buildCuts(D){
   var cuts = [], st = D.stories, demo = D.mode === 'demo', n = st.length;
   cuts.push({story:-1, who:'host', mood:'happy', badge:'info',
-    text:'안녕하세요, 진행자 달토예요.\n관심 분야에서 오늘의 이야기 '+n+'개를 골라 왔어요.'});
+    text:'안녕하세요, 진행자 달토예요.\n관심 분야에서 오늘의 이야기 '+n+'개를 골라 왔어요.'+(n > 20 ? '\n졸리면 언제든 그냥 주무세요.' : '')});
   cuts.push({story:-1, who:'analyst', mood:demo ? 'think' : 'calm', badge:'info',
     text: demo ? '참고로 지금은 실시간 뉴스를 못 불러왔어요.\n그래서 실제 뉴스가 아닌 “예시 이야기”로 보여 드려요.'
                : D.mode === 'cache' ? '지금은 새 소식을 못 불러와서\n'+fmtTime(D.fetchedAt)+'에 모아 둔 헤드라인으로 이야기할게요.'
@@ -813,7 +818,7 @@ function buildCuts(D){
       list.push({name:'상황 설명', who:'analyst', mood:'talk', badge:'dfact', text:s.cuts[1]});
     }else{
       list.push({name:'헤드라인', who:'host', mood:i === 0 ? 'talk' : 'surprised', badge:'fact',
-        text:ORD[i]+' 소식이에요. '+((Date.now() - s.time) / 36e5 > MAX_AGE_H ? fmtTime(s.time)+'에 나온 ' : '')+s.source+' 보도예요.\n“'+s.title+'”'});
+        text:ordinal(i)+' 소식이에요. '+((Date.now() - s.time) / 36e5 > MAX_AGE_H ? fmtTime(s.time)+'에 나온 ' : '')+s.source+' 보도예요.\n“'+s.title+'”'});
       if(s.desc) list.push({name:'기사 요약', who:'analyst', mood:'talk', badge:'summ', text:s.desc});
       else if(s.others && s.others.length) list.push({name:'다른 매체 보도', who:'analyst', mood:'talk', badge:'others',
         text:s.others.map(function(o){ return '· '+o.title+' ('+o.source+')'; }).join('\n')});
@@ -927,7 +932,7 @@ function renderCut(){
 
   var dots = '';
   if(s){ for(var k=0;k<c.nst;k++) dots += '<i class="'+(k < c.stage ? 'done' : k === c.stage ? 'on' : '')+'"></i>'; }
-  else { for(var m=0;m<n;m++) dots += '<i class="'+(c.story >= n ? 'done' : '')+'"></i>'; }
+  else if(n <= 12){ for(var m=0;m<n;m++) dots += '<i class="'+(c.story >= n ? 'done' : '')+'"></i>'; }
   $('dots').innerHTML = dots;
 
   var who = CAST[c.who], b = $('bubble');
